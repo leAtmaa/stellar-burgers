@@ -9,14 +9,12 @@ export const Login: FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     setError(undefined);
     try {
       await dispatch(loginUser({ email, password })).unwrap();
-      navigate('/');
     } catch (err) {
       setError('Ошибка авторизации. Проверьте email и пароль.');
     }

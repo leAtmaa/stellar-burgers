@@ -13,7 +13,8 @@ import {
   ResetPassword,
   Profile,
   ProfileOrders,
-  NotFound404
+  NotFound404,
+  IngredientPage
 } from '@pages';
 import { Modal } from '@components';
 import { OrderInfo, IngredientDetails } from '@components';
@@ -58,6 +59,10 @@ const AppContent = () => {
         {/* Открытые роуты */}
         <Route path='/' element={<ConstructorPage />} />
         <Route path='/feed' element={<Feed />} />
+        {/* Отдельная страница ингредиента */}
+        <Route path='/ingredients/:id' element={<IngredientPage />} />
+        {/* Отдельная страница заказа из ленты */}
+        <Route path='/feed/:number' element={<OrderInfo />} />
 
         {/* Защищенные роуты (только для неавторизованных) */}
         <Route
@@ -107,6 +112,15 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
+        {/* Отдельная страница заказа из истории (защищенная) */}
+        <Route
+          path='/profile/orders/:number'
+          element={
+            <ProtectedRoute>
+              <OrderInfo />
             </ProtectedRoute>
           }
         />

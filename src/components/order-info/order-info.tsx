@@ -37,6 +37,7 @@ export const OrderInfo: FC = () => {
         return;
       }
 
+      // Если не нашли, загружаем с сервера
       try {
         const response = await getOrderByNumberApi(Number(number));
         if (response.orders && response.orders.length > 0) {
@@ -54,6 +55,7 @@ export const OrderInfo: FC = () => {
     }
   }, [number, orders]);
 
+  // Подготавливаем данные для отображения
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
@@ -63,6 +65,7 @@ export const OrderInfo: FC = () => {
       [key: string]: TIngredient & { count: number };
     };
 
+    // Считаем количество каждого ингредиента в заказе
     const ingredientsInfo = orderData.ingredients.reduce(
       (acc: TIngredientsWithCount, item: string) => {
         if (!acc[item]) {
@@ -83,7 +86,7 @@ export const OrderInfo: FC = () => {
       {} as TIngredientsWithCount
     );
 
-    // Общ стоимость
+    // Считаем общую стоимость
     const total = Object.values(ingredientsInfo).reduce(
       (acc: number, item: TIngredient & { count: number }) =>
         acc + item.price * item.count,
