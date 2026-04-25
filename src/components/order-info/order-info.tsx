@@ -1,23 +1,61 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from '../../services/store';
+import { fetchUserOrders } from '../../services/slices/userOrdersSlice';
+import { getOrderByNumberApi } from '@api';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
-import { TIngredient } from '@utils-types';
+import { TIngredient, TOrder } from '@utils-types';
 
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const { number } = useParams<{ number: string }>();
+  const dispatch = useDispatch();
+  // Получаем ингредиенты из store
+  const { data: ingredients } = useSelector((state) => state.ingredients);
+  const { orders } = useSelector((state) => state.userOrders);
+  const [orderData, setOrderData] = useState<TOrder | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const ingredients: TIngredient[] = [];
+  // Загружаем заказы пользователя если их нет
+  useEffect(() => {
+    if (orders.length === 0) {
+      dispatch(fetchUserOrders());
+    }
+  }, [dispatch, orders.length]);
 
-  /* Готовим данные для отображения */
+  // Загружаем данные заказа
+  useEffect(() => {
+    const loadOrder = async () => {
+      setIsLoading(true);
+      // Сначала пробуем найти заказ в истории пользователя
+      const existingOrder = orders.find(
+        (order) => order.number === Number(number)
+      );
+      if (existingOrder) {
+        setOrderData(existingOrder);
+        setIsLoading(false);
+        return;
+      }
+
+      // Если не нашли, загружаем с сервера
+      try {
+        const response = await getOrderByNumberApi(Number(number));
+        if (response.orders && response.orders.length > 0) {
+          setOrderData(response.orders[0]);
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки заказа:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (number) {
+      loadOrder();
+    }
+  }, [number, orders]);
+
+  // Подготавливаем данные для отображения
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
@@ -27,10 +65,13 @@ export const OrderInfo: FC = () => {
       [key: string]: TIngredient & { count: number };
     };
 
+    // Считаем количество каждого ингредиента в заказе
     const ingredientsInfo = orderData.ingredients.reduce(
-      (acc: TIngredientsWithCount, item) => {
+      (acc: TIngredientsWithCount, item: string) => {
         if (!acc[item]) {
-          const ingredient = ingredients.find((ing) => ing._id === item);
+          const ingredient = ingredients.find(
+            (ing: TIngredient) => ing._id === item
+          );
           if (ingredient) {
             acc[item] = {
               ...ingredient,
@@ -40,14 +81,15 @@ export const OrderInfo: FC = () => {
         } else {
           acc[item].count++;
         }
-
         return acc;
       },
-      {}
+      {} as TIngredientsWithCount
     );
 
+    // Считаем общую стоимость
     const total = Object.values(ingredientsInfo).reduce(
-      (acc, item) => acc + item.price * item.count,
+      (acc: number, item: TIngredient & { count: number }) =>
+        acc + item.price * item.count,
       0
     );
 
@@ -59,7 +101,7 @@ export const OrderInfo: FC = () => {
     };
   }, [orderData, ingredients]);
 
-  if (!orderInfo) {
+  if (isLoading || !orderInfo) {
     return <Preloader />;
   }
 

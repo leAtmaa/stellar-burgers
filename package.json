@@ -11,19 +11,17 @@
     "@types/node": "^16.18.23",
     "@types/react": "^18.0.31",
     "@types/react-dom": "^18.0.11",
-    "@types/uuid": "^9.0.1",
     "@zlden/react-developer-burger-ui-components": "^1.15.0",
     "clsx": "^2.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-intersection-observer": "^9.4.3",
     "react-redux": "^9.1.0",
-    "react-router-dom": "^6.10.0",
+    "react-router-dom": "^6.30.3",
     "redux-thunk": "^3.1.0",
     "typescript": "^5.3.3",
-    "uuid": "^9.0.0",
+    "uuid": "^9.0.1",
     "web-vitals": "^2.1.4",
-    "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
   },
@@ -48,6 +46,7 @@
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "@types/react-test-renderer": "^18.0.7",
+    "@types/uuid": "^10.0.0",
     "@types/webpack-env": "^1.18.4",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
@@ -83,12 +82,15 @@
     "ts-jest": "^29.1.1",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "url-loader": "^4.1.1"
+    "url-loader": "^4.1.1",
+    "webpack": "^5.89.0"
   },
   "scripts": {
     "start": "webpack serve --mode=development",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "build": "webpack",
+    "watch": "webpack --watch",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx ./src",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier ./src --write"
@@ -97,5 +99,18 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
-  }
+  },
+  "description": "[Макет](<https://www.figma.com/file/vIywAvqfkOIRWGOkfOnReY/React-Fullstack_-Проектные-задачи-(3-месяца)_external_link?type=design&node-id=0-1&mode=design>)",
+  "main": "webpack.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leAtmaa/stellar-burgers.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/leAtmaa/stellar-burgers/issues"
+  },
+  "homepage": "https://github.com/leAtmaa/stellar-burgers#readme"
 }
