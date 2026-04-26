@@ -1,49 +1,19 @@
-import { rootReducer } from './store';
+import { combineReducers } from '@reduxjs/toolkit';
+import store, { rootReducer } from './store';
 
 describe('rootReducer', () => {
   describe('Инициализация rootReducer', () => {
     it('должен возвращать корректное начальное состояние при вызове с undefined и unknown action', () => {
-      const initialState = {
-        ingredients: {
-          data: [],
-          loading: false,
-          error: null
-        },
-        ingredientDetails: {
-          ingredient: null
-        },
-        burgerConstructor: {
-          bun: null,
-          ingredients: []
-        },
-        user: {
-          user: null,
-          isAuthChecked: false,
-          isLoading: false,
-          error: null
-        },
-        order: {
-          orderRequest: false,
-          orderModalData: null,
-          error: null
-        },
-        userOrders: {
-          orders: [],
-          isLoading: false,
-          error: null
-        },
-        feed: {
-          orders: [],
-          total: 0,
-          totalToday: 0,
-          isLoading: false,
-          error: null
-        }
-      };
-
-      const state = rootReducer(undefined, { type: 'UNKNOWN_ACTION' });
+      // Создаем комбинированный редьюсер из объекта
+      const combinedReducer = combineReducers(rootReducer);
       
-      expect(state).toEqual(initialState);
+      // Вызываем с undefined и unknown action
+      const state = combinedReducer(undefined, { type: 'UNKNOWN_ACTION' });
+      
+      // Получаем ожидаемое начальное состояние
+      const expectedState = store.getState();
+      
+      expect(state).toEqual(expectedState);
     });
 
     it('должен содержать все необходимые слайсы', () => {

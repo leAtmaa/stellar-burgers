@@ -1,4 +1,4 @@
-import ingredientsSlice, {
+import {
   fetchIngredients,
   ingredientsReducer
 } from './ingredientsSlice';

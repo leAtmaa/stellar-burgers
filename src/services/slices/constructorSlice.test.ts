@@ -1,4 +1,4 @@
-import constructorSlice, {
+import {
   addIngredient,
   removeIngredient,
   moveIngredientUp,
