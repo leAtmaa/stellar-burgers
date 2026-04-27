@@ -52,16 +52,14 @@ const mockIngredient2: TIngredient = {
 };
 
 describe('burgerConstructor слайс', () => {
-  const initialState = {
-    bun: null,
-    ingredients: []
-  };
+  // Получаем начальное состояние из редьюсера
+  const getInitialState = () => constructorReducer(undefined, { type: 'unknown' });
 
   describe('Начальное состояние', () => {
     it('должно иметь правильное начальное состояние', () => {
-      const state = constructorReducer(undefined, { type: 'unknown' });
+      const initialState = getInitialState();
       
-      expect(state).toEqual({
+      expect(initialState).toEqual({
         bun: null,
         ingredients: []
       });
@@ -71,6 +69,7 @@ describe('burgerConstructor слайс', () => {
   describe('Редьюсер addIngredient', () => {
     describe('Добавление булки', () => {
       it('должен добавлять булку в конструктор', () => {
+        const initialState = getInitialState();
         const action = addIngredient(mockBun);
         const newState = constructorReducer(initialState, action);
 
@@ -82,6 +81,7 @@ describe('burgerConstructor слайс', () => {
       });
 
       it('должен заменять булку при добавлении другой булки', () => {
+        const initialState = getInitialState();
         const firstAction = addIngredient(mockBun);
         const afterFirst = constructorReducer(initialState, firstAction);
         
@@ -102,6 +102,7 @@ describe('burgerConstructor слайс', () => {
 
     describe('Добавление начинки', () => {
       it('должен добавлять начинку (ингредиент) в конструктор', () => {
+        const initialState = getInitialState();
         const action = addIngredient(mockIngredient1);
         const newState = constructorReducer(initialState, action);
 
@@ -112,7 +113,8 @@ describe('burgerConstructor слайс', () => {
       });
 
       it('должен добавлять несколько начинок в конструктор', () => {
-        let state = constructorReducer(initialState, addIngredient(mockIngredient1));
+        let state = getInitialState();
+        state = constructorReducer(state, addIngredient(mockIngredient1));
         state = constructorReducer(state, addIngredient(mockIngredient2));
 
         expect(state.ingredients).toHaveLength(2);
@@ -121,11 +123,8 @@ describe('burgerConstructor слайс', () => {
       });
 
       it('должен добавлять уникальный id каждому ингредиенту', () => {
-        const action1 = addIngredient(mockIngredient1);
-        const state1 = constructorReducer(initialState, action1);
-        
-        const action2 = addIngredient(mockIngredient1);
-        const state2 = constructorReducer(state1, action2);
+        const state1 = constructorReducer(getInitialState(), addIngredient(mockIngredient1));
+        const state2 = constructorReducer(state1, addIngredient(mockIngredient1));
 
         expect(state2.ingredients[0].id).not.toBe(state2.ingredients[1].id);
       });
@@ -136,7 +135,7 @@ describe('burgerConstructor слайс', () => {
     describe('Удаление существующего ингредиента', () => {
       it('должен удалять ингредиент из конструктора по id', () => {
         const addAction = addIngredient(mockIngredient1);
-        const stateWithIngredient = constructorReducer(initialState, addAction);
+        const stateWithIngredient = constructorReducer(getInitialState(), addAction);
         const ingredientId = stateWithIngredient.ingredients[0].id;
         
         const removeAction = removeIngredient(ingredientId);
@@ -146,7 +145,8 @@ describe('burgerConstructor слайс', () => {
       });
 
       it('должен удалять только указанный ингредиент, оставляя остальные', () => {
-        let state = constructorReducer(initialState, addIngredient(mockIngredient1));
+        let state = getInitialState();
+        state = constructorReducer(state, addIngredient(mockIngredient1));
         state = constructorReducer(state, addIngredient(mockIngredient2));
         
         const firstIngredientId = state.ingredients[0].id;
@@ -161,7 +161,7 @@ describe('burgerConstructor слайс', () => {
 
     describe('Удаление несуществующего ингредиента', () => {
       it('не должен ничего менять при удалении по несуществующему id', () => {
-        const state = constructorReducer(initialState, addIngredient(mockIngredient1));
+        const state = constructorReducer(getInitialState(), addIngredient(mockIngredient1));
         
         const removeAction = removeIngredient('non-existent-id');
         const newState = constructorReducer(state, removeAction);
@@ -175,7 +175,8 @@ describe('burgerConstructor слайс', () => {
   describe('Редьюсер moveIngredientUp', () => {
     describe('Перемещение ингредиента', () => {
       it('должен перемещать ингредиент вверх по списку', () => {
-        let state = constructorReducer(initialState, addIngredient(mockIngredient1));
+        let state = getInitialState();
+        state = constructorReducer(state, addIngredient(mockIngredient1));
         state = constructorReducer(state, addIngredient(mockIngredient2));
         
         const moveAction = moveIngredientUp(1);
@@ -188,7 +189,8 @@ describe('burgerConstructor слайс', () => {
 
     describe('Граничные случаи', () => {
       it('не должен перемещать ингредиент вверх, если он уже на первом месте', () => {
-        let state = constructorReducer(initialState, addIngredient(mockIngredient1));
+        let state = getInitialState();
+        state = constructorReducer(state, addIngredient(mockIngredient1));
         state = constructorReducer(state, addIngredient(mockIngredient2));
         
         const moveAction = moveIngredientUp(0);
@@ -203,7 +205,8 @@ describe('burgerConstructor слайс', () => {
   describe('Редьюсер moveIngredientDown', () => {
     describe('Перемещение ингредиента', () => {
       it('должен перемещать ингредиент вниз по списку', () => {
-        let state = constructorReducer(initialState, addIngredient(mockIngredient1));
+        let state = getInitialState();
+        state = constructorReducer(state, addIngredient(mockIngredient1));
         state = constructorReducer(state, addIngredient(mockIngredient2));
         
         const moveAction = moveIngredientDown(0);
@@ -216,7 +219,8 @@ describe('burgerConstructor слайс', () => {
 
     describe('Граничные случаи', () => {
       it('не должен перемещать ингредиент вниз, если он уже на последнем месте', () => {
-        let state = constructorReducer(initialState, addIngredient(mockIngredient1));
+        let state = getInitialState();
+        state = constructorReducer(state, addIngredient(mockIngredient1));
         state = constructorReducer(state, addIngredient(mockIngredient2));
         
         const moveAction = moveIngredientDown(1);
@@ -231,7 +235,8 @@ describe('burgerConstructor слайс', () => {
   describe('Редьюсер clearConstructor', () => {
     describe('Очистка конструктора', () => {
       it('должен очищать конструктор (булку и ингредиенты)', () => {
-        let state = constructorReducer(initialState, addIngredient(mockBun));
+        let state = getInitialState();
+        state = constructorReducer(state, addIngredient(mockBun));
         state = constructorReducer(state, addIngredient(mockIngredient1));
         state = constructorReducer(state, addIngredient(mockIngredient2));
         
@@ -247,7 +252,7 @@ describe('burgerConstructor слайс', () => {
 
       it('должен очищать конструктор даже если он пуст', () => {
         const clearAction = clearConstructor();
-        const newState = constructorReducer(initialState, clearAction);
+        const newState = constructorReducer(getInitialState(), clearAction);
 
         expect(newState.bun).toBeNull();
         expect(newState.ingredients).toHaveLength(0);
