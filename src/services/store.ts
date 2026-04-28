@@ -10,17 +10,17 @@ import { constructorReducer } from './slices/constructorSlice';
 import { userReducer } from './slices/userSlice';
 import { orderReducer } from './slices/orderSlice';
 import { userOrdersReducer } from './slices/userOrdersSlice';
-import { feedReducer } from './slices/feedSlice'; // Добавляем импорт
+import { feedReducer } from './slices/feedSlice';
 
-// Добавляем feedReducer в rootReducer
-const rootReducer = {
+// Экспортируем rootReducer для тестов
+export const rootReducer = {
   ingredients: ingredientsReducer,
   ingredientDetails: ingredientDetailsReducer,
   burgerConstructor: constructorReducer,
   user: userReducer,
   order: orderReducer,
   userOrders: userOrdersReducer,
-  feed: feedReducer // Новый редьюсер для ленты заказов
+  feed: feedReducer
 };
 
 const store = configureStore({
