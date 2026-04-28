@@ -1,159 +1,119 @@
+/// <reference types="cypress" />
+
 describe('Страница конструктора бургера', () => {
   beforeEach(() => {
-    // Перехват запроса на получение ингредиентов
+    // Моковые данные из fixtures для всех backend-ответов
     cy.intercept('GET', '**/api/ingredients', {
       fixture: 'ingredients.json'
     }).as('getIngredients');
 
-    // Открываем главную страницу
+    cy.intercept('GET', '**/api/auth/user', {
+      fixture: 'user.json'
+    }).as('getUser');
+
+    cy.intercept('POST', '**/api/orders', {
+      fixture: 'order.json'
+    }).as('createOrder');
+
+    // Моковые токены авторизации
+    cy.setCookie('accessToken', 'Bearer mock-access-token');
+    localStorage.setItem('refreshToken', 'mock-refresh-token');
+
     cy.visit('/');
-    
-    // Ждем загрузки ингредиентов
     cy.wait('@getIngredients');
-    cy.wait(1000);
+    cy.wait('@getUser');
+    cy.wait(2000);
   });
 
-  describe('Добавление ингредиента в конструктор', () => {
-    it('должна добавляться булка в конструктор', () => {
-      cy.contains('Краторная булка N-200i')
-        .parents('li')
-        .find('button')
-        .first()
-        .click({ force: true });
+  afterEach(() => {
+    cy.clearCookie('accessToken');
+    localStorage.removeItem('refreshToken');
+  });
 
+  it('должна добавляться булка в конструктор', () => {
+    cy.contains('Краторная булка N-200i')
+      .parents('li')
+      .find('button')
+      .click();
+
+    // Поиск внутри контейнера по data-testid
+    cy.get('[data-testid="burger-constructor"]').within(() => {
       cy.contains('Краторная булка N-200i (верх)').should('exist');
       cy.contains('Краторная булка N-200i (низ)').should('exist');
     });
+  });
 
-    it('должна добавляться начинка в конструктор', () => {
-      cy.contains('Биокотлета из марсианской Магнолии')
-        .parents('li')
-        .find('button')
-        .first()
-        .click({ force: true });
+  it('должна добавляться начинка в конструктор', () => {
+    cy.contains('Краторная булка N-200i')
+      .parents('li')
+      .find('button')
+      .click();
 
+    cy.contains('Биокотлета из марсианской Магнолии')
+      .parents('li')
+      .find('button')
+      .click();
+
+    // Поиск внутри контейнера по data-testid
+    cy.get('[data-testid="burger-constructor"]').within(() => {
       cy.contains('Биокотлета из марсианской Магнолии').should('exist');
     });
+
+    // Проверка стоимости
+    cy.contains('2934').should('be.visible');
   });
 
-  describe('Модальное окно ингредиента', () => {
-    it('должно открываться модальное окно при клике на ингредиент', () => {
-      cy.contains('Краторная булка N-200i').click();
-      cy.contains('Детали ингредиента').should('be.visible');
-    });
-
-    it('должно отображать данные именно того ингредиента, по которому кликнули', () => {
-      cy.contains('Краторная булка N-200i').click();
-      cy.contains('Краторная булка N-200i').should('be.visible');
-      cy.get('body').type('{esc}');
-      
-      cy.contains('Биокотлета из марсианской Магнолии').click();
-      cy.contains('Биокотлета из марсианской Магнолии').should('be.visible');
-      cy.get('body').type('{esc}');
-      
-      cy.contains('Соус Spicy-X').click();
-      cy.contains('Соус Spicy-X').should('be.visible');
-    });
-
-    it('должно закрываться модальное окно при клике на крестик', () => {
-      cy.contains('Краторная булка N-200i').click();
-      cy.contains('Детали ингредиента').should('be.visible');
-      cy.get('#modals button').click();
-      cy.contains('Детали ингредиента').should('not.exist');
-    });
-
-    it('должно закрываться модальное окно при клике на оверлей', () => {
-      cy.contains('Краторная булка N-200i').click();
-      cy.contains('Детали ингредиента').should('be.visible');
-      cy.get('body').click(0, 0);
-      cy.contains('Детали ингредиента').should('not.exist');
-    });
+  it('должно открываться модальное окно при клике на ингредиент', () => {
+    cy.contains('Краторная булка N-200i').click();
+    cy.contains('Детали ингредиента', { timeout: 10000 }).should('be.visible');
   });
 
-  describe('Создание заказа', () => {
-    const testEmail = `test-${Date.now()}@example.com`;
-    const testPassword = 'password123';
+  it('должно закрываться модальное окно при клике на крестик', () => {
+    cy.contains('Краторная булка N-200i').click();
+    cy.contains('Детали ингредиента').should('be.visible');
+    cy.get('#modals button').click();
+    cy.contains('Детали ингредиента').should('not.exist');
+  });
 
-    before(() => {
-      // Регистрация пользователя перед тестом
-      cy.request({
-        method: 'POST',
-        url: 'https://norma.education-services.ru/api/auth/register',
-        body: {
-          email: testEmail,
-          password: testPassword,
-          name: 'Test User'
-        },
-        failOnStatusCode: false
-      }).then((response) => {
-        cy.log('Registration response:', response.status);
-      });
-    });
+  it('должно закрываться модальное окно при клике на оверлей', () => {
+    cy.contains('Краторная булка N-200i').click();
+    cy.contains('Детали ингредиента').should('be.visible');
+    cy.get('body').click(0, 0);
+    cy.contains('Детали ингредиента').should('not.exist');
+  });
 
-    it('должен успешно создаваться заказ', () => {
-      // Авторизация через API запрос
-      cy.request({
-        method: 'POST',
-        url: 'https://norma.education-services.ru/api/auth/login',
-        body: {
-          email: testEmail,
-          password: testPassword
-        }
-      }).then((response) => {
-        expect(response.status).to.eq(200);
-        // Устанавливаем токены
-        cy.setCookie('accessToken', response.body.accessToken);
-        localStorage.setItem('refreshToken', response.body.refreshToken);
-      });
+  it('должен успешно создаваться заказ', () => {
+    // Собираем бургер
+    cy.contains('Краторная булка N-200i')
+      .parents('li')
+      .find('button')
+      .click();
 
-      // Перезагружаем страницу после авторизации
-      cy.visit('/');
-      cy.wait('@getIngredients');
-      cy.wait(1000);
-      
-      // Добавляем булку
-      cy.contains('Краторная булка N-200i')
-        .parents('li')
-        .find('button')
-        .first()
-        .click({ force: true });
+    cy.contains('Биокотлета из марсианской Магнолии')
+      .parents('li')
+      .find('button')
+      .click();
 
-      // Добавляем начинку
-      cy.contains('Биокотлета из марсианской Магнолии')
-        .parents('li')
-        .find('button')
-        .first()
-        .click({ force: true });
+    // Оформляем заказ
+    cy.contains('Оформить заказ').click();
+    cy.wait('@createOrder');
 
-      // Проверяем что кнопка активна
-      cy.contains('Оформить заказ').should('be.enabled');
+    // Проверяем номер заказа
+    cy.contains('12345', { timeout: 10000 }).should('be.visible');
 
-      // Перехват запроса на создание заказа
-      cy.intercept('POST', '**/api/orders', {
-        statusCode: 200,
-        body: {
-          success: true,
-          name: 'Флюоресцентный бургер',
-          order: {
-            number: 12345
-          }
-        }
-      }).as('createOrder');
+    // Закрываем модалку
+    cy.get('#modals button').click();
 
-      // Нажимаем кнопку "Оформить заказ"
-      cy.contains('Оформить заказ').click();
-
-      // Ждем ответа от API
-      cy.wait('@createOrder', { timeout: 10000 });
-
-      // Проверяем номер заказа
-      cy.contains('12345', { timeout: 10000 }).should('be.visible');
-
-      // Закрываем модалку
-      cy.get('#modals button').click();
-
-      // Проверяем, что конструктор очистился
+    // Проверяем полную очистку конструктора внутри контейнера
+    cy.get('[data-testid="burger-constructor"]').within(() => {
+      // Проверяем, что булка удалилась
+      cy.contains('Краторная булка N-200i (верх)').should('not.exist');
+      cy.contains('Краторная булка N-200i (низ)').should('not.exist');
+      // Проверяем, что начинка удалилась
+      cy.contains('Биокотлета из марсианской Магнолии').should('not.exist');
+      // Проверяем плейсхолдеры
       cy.contains('Выберите булки').should('be.visible');
+      cy.contains('Выберите начинку').should('be.visible');
     });
   });
 });

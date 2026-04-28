@@ -19,23 +19,17 @@ export const BurgerConstructor: FC = () => {
   const { user } = useSelector((state) => state.user);
   const { orderRequest, orderModalData } = useSelector((state) => state.order);
 
+  // Обработчик оформления заказа
   const onOrderClick = async () => {
-    // Проверяем наличие булки
     if (!bun || orderRequest) return;
 
-    // Проверяем авторизацию
     if (!user) {
       navigate('/login');
       return;
     }
 
-    // Формируем массив id ингредиентов
-    const orderData = [
-      bun._id, // Булка
-      ...ingredients.map((item) => item._id) // Все начинки и соусы
-    ];
+    const orderData = [bun._id, ...ingredients.map((item) => item._id)];
 
-    // Отправляем запрос на создание заказа
     try {
       await dispatch(createOrder(orderData)).unwrap();
       dispatch(clearConstructor());
@@ -44,7 +38,6 @@ export const BurgerConstructor: FC = () => {
     }
   };
 
-  // Закрытие модалки заказа
   const handleCloseOrderModal = () => {
     dispatch(closeOrderModal());
   };
